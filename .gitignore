@@ -1,0 +1,81 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# Data files (large)
+*.npy
+*.img
+*.hdr
+*.dat
+*.bin
+
+# MODTRAN outputs
+tape5*
+tape6*
+tape7*
+*.tp5
+*.tp6
+*.tp7
+*.chn
+*.flt.out
+*.plt
+*.psc
+
+# LUTs (can be large)
+luts/*.npy
+data/luts/
+
+# Documentation
+docs/_build/
+docs/_static/
+docs/_templates/
+
+# Logs
+*.log
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Temporary files
+tmp/
+temp/
+*.tmp

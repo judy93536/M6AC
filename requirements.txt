@@ -1,0 +1,25 @@
+# Core scientific computing
+numpy>=1.20.0
+scipy>=1.7.0
+matplotlib>=3.3.0
+
+# Hyperspectral image processing
+spectral>=0.22.0
+
+# Geospatial (optional, for LOC/GLT handling)
+gdal>=3.0.0
+
+# Interpolation & kriging
+scikit-learn>=0.24.0
+pykrige>=1.6.0
+
+# Progress bars & utilities
+tqdm>=4.60.0
+
+# Testing
+pytest>=6.2.0
+pytest-cov>=2.12.0
+
+# Documentation (optional)
+sphinx>=4.0.0
+sphinx-rtd-theme>=0.5.0
