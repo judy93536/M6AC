@@ -11,6 +11,7 @@ __author__ = 'Judy Northrop'
 from .core import M6AC
 from .retrieval import water_vapor_cibr, aerosol_ddv
 from .lut import LUTGenerator, LUTInterpolator
+from .utils import extract_scene_metadata
 
 __all__ = [
     'M6AC',
@@ -18,4 +19,5 @@ __all__ = [
     'aerosol_ddv',
     'LUTGenerator',
     'LUTInterpolator',
+    'extract_scene_metadata',
 ]

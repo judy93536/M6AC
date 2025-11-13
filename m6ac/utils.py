@@ -323,3 +323,149 @@ def save_reflectance(
         force=True,
         interleave='bil'
     )
+
+
+def extract_scene_metadata(
+    scene_id: str,
+    base_path: Optional[Union[str, Path]] = None,
+    border: int = 30
+) -> Dict[str, any]:
+    """
+    Extract all collection parameters from AVIRIS-NG files in one call
+
+    This convenience function combines filename parsing, observation geometry,
+    location data, and scene-center parameter extraction into a single call.
+
+    Parameters
+    ----------
+    scene_id : str
+        AVIRIS-NG scene identifier (e.g., 'ang20190624t230039_rdn_v2u1')
+    base_path : str or Path, optional
+        Base path to scene directory. If None, assumes standard structure:
+        /raid/AVIRIS_NG/imagery/{scene_id}/
+    border : int, optional
+        Border pixels to remove when computing scene-center parameters (default: 30)
+
+    Returns
+    -------
+    metadata : dict
+        Complete metadata dictionary containing:
+
+        **From filename:**
+        - scene_id: str - Full scene identifier
+        - year, month, day, hour, minute, second: int
+        - day_of_year: int (1-366)
+        - utc_time: float (decimal hours)
+
+        **From observation geometry (_obs_ort):**
+        - solar_zenith: float (degrees, scene center)
+        - solar_azimuth: float (degrees, scene center)
+        - earth_sun_dist: float (AU)
+
+        **From location (_loc_ort):**
+        - latitude: float (degrees, scene center)
+        - longitude: float (degrees, scene center)
+        - ground_altitude: float (km, scene center)
+
+        **Computed:**
+        - sensor_altitude: float (km, scene center)
+
+        **File paths:**
+        - radiance_path: str - Path to radiance image (without extension)
+        - obs_path: str - Path to observation geometry (without extension)
+        - loc_path: str - Path to location file (without extension)
+
+    Examples
+    --------
+    >>> # Extract metadata for a scene
+    >>> metadata = extract_scene_metadata('ang20190624t230039_rdn_v2u1')
+    >>> print(f"Solar zenith: {metadata['solar_zenith']:.2f} degrees")
+    >>> print(f"Sensor altitude: {metadata['sensor_altitude']:.3f} km")
+
+    >>> # Use custom base path
+    >>> metadata = extract_scene_metadata(
+    ...     'ang20190624t230039_rdn_v2u1',
+    ...     base_path='/custom/path/to/scene'
+    ... )
+
+    >>> # Use directly with MODTRAN LUT generation
+    >>> from m6ac.lut import LUTGenerator
+    >>> generator = LUTGenerator(sensor_filter_path='aviris_ng.flt')
+    >>> metadata = extract_scene_metadata('ang20190624t230039_rdn_v2u1')
+    >>> lut = generator.generate_lut(
+    ...     sensor_altitude_km=metadata['sensor_altitude'],
+    ...     ground_altitude_km=metadata['ground_altitude'],
+    ...     solar_zenith_deg=metadata['solar_zenith'],
+    ...     latitude=metadata['latitude'],
+    ...     longitude=metadata['longitude'],
+    ...     day_of_year=metadata['day_of_year'],
+    ...     utc_time=metadata['utc_time'],
+    ...     h2o_column_gcm2=2.0,
+    ...     visibility_km=35.0
+    ... )
+    """
+    # Remove any file extensions from scene_id
+    scene_id = Path(scene_id).stem
+
+    # Determine base path
+    if base_path is None:
+        base_path = Path('/raid/AVIRIS_NG/imagery') / scene_id
+    else:
+        base_path = Path(base_path)
+
+    # Construct file paths
+    radiance_path = base_path / f'{scene_id}_img'
+    obs_path = base_path / f'{scene_id}_obs_ort'
+    loc_path = base_path / f'{scene_id}_loc_ort'
+
+    # 1. Parse filename for date/time
+    filename_params = parse_aviris_filename(scene_id)
+
+    # 2. Load observation geometry
+    geometry = load_obs_geometry(obs_path, border=border)
+
+    # 3. Load location data
+    location = load_location(loc_path, border=border)
+
+    # 4. Extract scene-center parameters
+    scene_params = get_scene_center_params(geometry, location)
+
+    # 5. Combine all parameters into unified dictionary
+    # Convert numpy types to native Python types for JSON serialization
+    metadata = {
+        # Scene identifier
+        'scene_id': scene_id,
+
+        # Date and time (from filename)
+        'year': filename_params['year'],
+        'month': filename_params['month'],
+        'day': filename_params['day'],
+        'hour': filename_params['hour'],
+        'minute': filename_params['minute'],
+        'second': filename_params['second'],
+        'day_of_year': filename_params['day_of_year'],
+        'utc_time': filename_params['utc_time'],
+
+        # Solar geometry (scene center)
+        'solar_zenith': float(scene_params['solar_zenith']),
+        'solar_azimuth': float(scene_params['solar_azimuth']),
+
+        # Location (scene center)
+        'latitude': float(scene_params['latitude']),
+        'longitude': float(scene_params['longitude']),
+
+        # Altitude (scene center)
+        'sensor_altitude': float(scene_params['sensor_altitude']),
+        'ground_altitude': float(scene_params['ground_altitude']),
+
+        # Earth-Sun distance (scene average)
+        'earth_sun_dist': float(geometry['earth_sun_dist'].mean()),
+
+        # File paths for reference
+        'radiance_path': str(radiance_path),
+        'obs_path': str(obs_path),
+        'loc_path': str(loc_path),
+        'base_path': str(base_path),
+    }
+
+    return metadata

@@ -47,7 +47,8 @@ htmlcov/
 *.dat
 *.bin
 
-# MODTRAN outputs
+# MODTRAN outputs (PROPRIETARY - DO NOT REDISTRIBUTE)
+# All MODTRAN6 output files must be excluded from git
 tape5*
 tape6*
 tape7*
@@ -58,9 +59,17 @@ tape7*
 *.flt.out
 *.plt
 *.psc
+*._pth
+*.7sc
+*.wrn
+fort.*
+modtran_runs/
+work/
 
-# LUTs (can be large)
-luts/*.npy
+# LUTs - NOT DISTRIBUTED (conservative licensing approach)
+# Generated from MODTRAN6, not redistributed per EULA
+# Users must generate their own LUTs with licensed MODTRAN6
+luts/
 data/luts/
 
 # Documentation
@@ -79,3 +88,8 @@ docs/_templates/
 tmp/
 temp/
 *.tmp
+
+# Compiled binaries (C++)
+src/lut_mpi_hdf5/lut_mpi_hdf5
+*.o
+*.a
